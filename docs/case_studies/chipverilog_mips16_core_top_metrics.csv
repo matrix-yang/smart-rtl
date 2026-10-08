@@ -1,0 +1,3 @@
+method,success,final_status,formal_status,proof_type,candidate_snapshots,official_eda_calls,repair_rounds,decision_rounds,llm_calls_recorded,llm_call_scope,recorded_total_tokens,observed_wall_seconds,target_rtl_candidates,testbench_candidates
+ACE-RTL,false,elaboration_fail,skip,unknown,6,6,5,,6,code-producing lower bound only,,1955.331022,0,6
+Adaptive BW-RTL,true,passed,equivalent,induction,1,1,0,2,4,complete,54916,90.761359,1,0

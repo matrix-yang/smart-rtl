@@ -1,0 +1,30 @@
+# Local benchmark datasets downloaded by setup helpers.
+datasets/
+
+# Local package caches created by environment setup.
+.conda-pkgs/
+
+# Local Conda/Mamba environments created during native setup.
+.cvdp-native/
+
+# Local CVDP checkout and run artifacts.
+external/
+outputs/
+artifacts/
+
+# Local experiment planning and credentials.
+PLAN.md
+CHECKLIST.md
+.env
+.env.*
+!.env.example
+
+# Python/cache artifacts.
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/

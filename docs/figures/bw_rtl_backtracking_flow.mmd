@@ -1,0 +1,8 @@
+flowchart LR
+    P0["Plan p0"] --> C1["c1: baseline<br/>partial progress"]
+    C1 -->|refine h1| C2["c2: datapath fixed<br/>FSM regressed"]
+    C1 -->|fork h2| C3["c3: alternative control"]
+    C2 -->|backtrack| C1
+    C2 -. failure evidence .-> K["Ledger:<br/>h1 conflicts with handshake"]
+    C3 -->|refine with k| C4["c4: verified PASS"]
+    C1 -. retained ancestor .-> C4

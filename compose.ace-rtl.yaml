@@ -1,0 +1,30 @@
+name: smart-rtl
+
+services:
+  ace-rtl-agentic:
+    build:
+      context: .
+      dockerfile: Dockerfile.ace-rtl
+    image: smart-rtl:deepseek
+    working_dir: /workspace/ace
+    environment:
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-flash}
+      CVDP_NATIVE_HARNESS: "1"
+      ACE_RTL_LLM_SCRIPT: /workspace/ace/skills/ace-rtl/scripts/deepseek_adapter.py
+      ACE_RTL_MAX_TOKENS: "192000"
+      ACE_RTL_REASONING_BUDGET: "192000"
+      # Pin libpython for cocotb; if image python changes, run `python3 -c "import sysconfig; print(sysconfig.get_config_var('LDLIBRARY'))"` to confirm.
+      LIBPYTHON_LOC: /usr/lib/x86_64-linux-gnu/libpython3.12.so
+      PYTHONPATH: /workspace/ace:/workspace/ace/skills/ace-rtl/scripts
+      CHIPVERILOG_ROOT: /workspace/chipverilog
+    volumes:
+      - .:/workspace/ace
+      - ./outputs:/workspace/ace/outputs
+      - ${CVDP_DATASETS:-./datasets}:/workspace/ace/datasets:ro
+      - ${CVDP_REPO:-./external/cvdp_benchmark}:/workspace/ace/external/cvdp_benchmark:ro
+      - ${CHIPVERILOG_ROOT:-./external/ChipVerilog}:/workspace/chipverilog:ro
+    stdin_open: true
+    tty: true
+    entrypoint: []

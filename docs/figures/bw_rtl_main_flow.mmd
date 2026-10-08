@@ -1,0 +1,31 @@
+flowchart LR
+    T["Public RTL Task<br/>specification, context, targets"] --> P["Planner<br/>semantic plan hypotheses"]
+    P --> S["Global Search State X_r<br/>plans · candidates · EDA evidence<br/>knowledge · prior events"]
+
+    S --> D["RTL-Director<br/>assess uncertainty and value"]
+    D --> A["Variable-length Action Cards<br/>width B_r is model-selected"]
+
+    A --> X{"Action type"}
+    X -->|seed / refine / fork / fuse| B["Builder<br/>generate immutable candidate"]
+    X -->|review_spec / replan| PR["Planner revision"]
+    X -->|discuss| DB["Debater"]
+    X -->|park / prune / backtrack| ST["Deterministic state transition"]
+
+    B --> C["Contract and path checks"]
+    C --> V["Native EDA Verifier<br/>compile · elaborate · simulate"]
+    V -->|FAIL| AN["Branch Analyst<br/>delta + bounded EDA diagnosis"]
+    V -->|PASS| EP["Sibling-pass event<br/>cancel unstarted work"]
+
+    AN --> K["Evidence-linked<br/>Knowledge Ledger"]
+    DB --> K
+    PR --> R["Round outcome integration"]
+    ST --> R
+    K --> R
+    EP --> R
+    V --> R
+
+    R --> CP["Checkpoint and complete round summary"]
+    CP --> S
+
+    D -->|stop with verified candidate| O["Selected RTL"]
+    D -->|exhausted / infrastructure / safety guard| N["Stop without correctness claim"]

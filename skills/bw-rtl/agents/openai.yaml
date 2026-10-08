@@ -1,0 +1,4 @@
+interface:
+  display_name: "Smart-RTL Director"
+  short_description: "Adaptive evidence-guided multi-agent RTL search"
+  default_prompt: "Use $bw-rtl to coordinate adaptive RTL search across planning, debugging, verification, and knowledge sharing."

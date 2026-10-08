@@ -1,0 +1,12 @@
+task_id,ace_status,ace_pass,ace_evaluator_calls,bw_status,bw_pass,bw_evaluator_calls,bw_candidate_count,bw_decision_rounds,comparison_class,selection_note
+mips_EX_stage,pass,true,3,passed,true,1,1,2,common_pass,BW saves 2 evaluator calls
+mips_ID_stage,pass,true,2,director_error,false,1,1,2,ACE_only_pass,negative result retained
+mips_IF_stage,pass,true,3,passed,true,1,1,2,common_pass,BW saves 2 evaluator calls
+mips_MEM_stage,pass,true,2,passed,true,1,1,2,common_pass,BW saves 1 evaluator call
+mips_WB_stage,pass,true,2,passed,true,1,1,2,common_pass,BW saves 1 evaluator call
+mips_alu,pass,true,3,passed,true,1,1,2,common_pass,BW result reused once from same-protocol final smoke
+mips_data_mem,pass,true,4,passed,true,1,1,2,common_pass,BW saves 3 evaluator calls
+mips_hazard_detection_unit,pass,true,2,stopped_without_correctness,false,1,1,2,ACE_only_pass,negative result retained
+mips_instruction_mem,elaboration_fail,false,6,director_error,false,3,3,4,common_fail,not correctness-separating
+mips_mips_16_core_top,elaboration_fail,false,6,passed,true,1,1,2,BW_only_pass,selected: only BW-pass ACE-fail task with complete mechanism trace
+mips_register_file,elaboration_fail,false,6,safety_limit,false,5,5,6,common_fail,not correctness-separating

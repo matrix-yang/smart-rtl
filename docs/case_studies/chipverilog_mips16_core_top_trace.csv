@@ -1,0 +1,10 @@
+method,step,candidate_or_action,artifact_class,evaluator_status,failure_stage,eda_call,observation,next_action
+ACE-RTL,1,candidate_001,testbench,compile_fail,CANDIDATE_COMPILE,1,"covergroup syntax error at line 143; wrong module is mips_16_core_top_tb","focused repair"
+ACE-RTL,2,candidate_002,testbench,elaboration_fail,ELABORATION,2,"unexpected { at helper-function return","focused repair"
+ACE-RTL,3,candidate_003,testbench,elaboration_fail,ELABORATION,3,"unexpected @ at line 216","focused repair"
+ACE-RTL,4,candidate_004,testbench,elaboration_fail,ELABORATION,4,"same unexpected @ failure signature","focused repair"
+ACE-RTL,5,candidate_005,testbench,elaboration_fail,ELABORATION,5,"unexpected { reappears at line 35","focused repair"
+ACE-RTL,6,candidate_006,testbench,elaboration_fail,ELABORATION,6,"unexpected @ reappears at line 216","stop at fixed max-iteration guard"
+Adaptive BW-RTL,0,plan direct_struct_top,structured RTL plan,not_run,not_run,0,"high certainty and high plan concentration; one direct-wiring hypothesis","dispatch width 1"
+Adaptive BW-RTL,1,c0001 0ea1afe454aabe75,target RTL,pass,VERIFIED_PASS,1,"interface compatible; temporal induction equivalent at k=16","stop candidate c0001"
+Adaptive BW-RTL,2,stop_1,decision,not_run,not_run,0,"complete fail-closed evidence e0001 and no conflicting hypothesis","terminate successfully"

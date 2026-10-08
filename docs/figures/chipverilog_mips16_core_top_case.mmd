@@ -1,0 +1,23 @@
+flowchart LR
+    subgraph ACE[ACE-RTL: fixed linear repair]
+        A1[Candidate 1\ntestbench\ncompile fail] --> A2[Candidate 2\ntestbench\nelaboration fail]
+        A2 --> A3[Candidate 3\ntestbench\nelaboration fail]
+        A3 --> A4[Candidate 4\nsame failure]
+        A4 --> A5[Candidate 5\nold failure returns]
+        A5 --> A6[Candidate 6\ntestbench\nelaboration fail]
+        A6 --> AF[Stop at max depth\n0/6 valid target RTL]
+    end
+
+    subgraph BW[Adaptive BW-RTL: evidence-directed allocation]
+        P[Planner\ndirect structural plan] --> D1[Director\nhigh concentration\nlogical width = 1]
+        D1 --> C1[c0001\nvalid target RTL]
+        C1 --> E1[Formal equivalence\ninduction k=16 PASS]
+        E1 --> D2[Director\ndepth = stop]
+    end
+
+    classDef fail fill:#FDE2E2,stroke:#B42318,color:#111;
+    classDef pass fill:#DCFCE7,stroke:#15803D,color:#111;
+    classDef decision fill:#E0E7FF,stroke:#4338CA,color:#111;
+    class A1,A2,A3,A4,A5,A6,AF fail;
+    class C1,E1 pass;
+    class P,D1,D2 decision;

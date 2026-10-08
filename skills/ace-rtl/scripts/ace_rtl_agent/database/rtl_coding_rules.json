@@ -1,0 +1,34 @@
+{
+  "rules": [
+    {
+      "id": "ARCH_001",
+      "title": "Clock Domain Separation - Different Clocks for Timing vs Functional Sequential Blocks",
+      "summary": "When a design derives a slower timing signal from a faster system clock and also updates functional state at that slower rate: implement two separate sequential processes/blocks with DIFFERENT clocks: (1) system clock for timing generation, (2) the derived timing signal as the ACTUAL clock for the functional logic. Do NOT update functional state under the system clock gated by an enable from the derived signal.",
+      "detailed_guidance": {
+        "prompt": "Separate timing-generation logic from functional state machines/counters into different clock domains. Derive the slower timing signal in the system clock domain. Then clock the functional logic that advances at that slower rate using the derived signal as the actual clock. Do not update functional state under the system clock with an enable from the derived signal. Never mix timing-generation and functional updates in the same sequential process/block.",
+        "example": {
+          "spec": "Generic timing divider and state updater: derive a slower timing signal from a fast system clock. A functional counter updates on the slower timing signal. Reset initializes state.",
+          "correct_code": "// SystemVerilog example demonstrating separate clocks for timing generation and functional logic\nmodule timed_counter #(\n  parameter int unsigned DIV_FACTOR = 25_000_000\n) (\n  input  logic sys_clk,\n  input  logic rst_n,\n  input  logic enable,\n  output logic [7:0] event_count\n);\n\n  // Clock divider to generate a slower clock\n  logic [$clog2(DIV_FACTOR)-1:0] div_cnt;\n  logic slow_clk;\n\n  // Timing generation in system clock domain\n  always_ff @(posedge sys_clk or negedge rst_n) begin\n    if (!rst_n) begin\n      div_cnt  <= '0;\n      slow_clk <= 1'b0;\n    end else if (enable) begin\n      if (div_cnt == DIV_FACTOR-1) begin\n        div_cnt  <= '0;\n        slow_clk <= ~slow_clk;\n      end else begin\n        div_cnt <= div_cnt + 1;\n      end\n    end\n  end\n\n  // Functional logic in derived clock domain\n  always_ff @(posedge slow_clk or negedge rst_n) begin\n    if (!rst_n) begin\n      event_count <= '0;\n    end else if (enable) begin\n      event_count <= event_count + 1;\n    end\n  end\n\nendmodule"
+        }
+      }
+    },
+    {
+      "id": "ARCH_002",
+      "title": "Asynchronous Signal Propagation - Complete Sensitivity Coverage",
+      "summary": "When implementing asynchronous control signals (reset, load, enable, etc.) that need immediate effect across multiple always blocks: add the signal to the sensitivity list of ALL always blocks that must respond to it. Partial coverage (adding to some blocks but not others) causes inconsistent state updates and timing violations. When debugging fails with one approach, try adding the async signal to ALL relevant blocks systematically.",
+      "detailed_guidance": {
+        "prompt": "Asynchronous signals like reset, load, or async enables must appear in the sensitivity list of EVERY always block that needs to respond immediately to them. Common mistake: adding async signal to one block but forgetting others. Debugging strategy: if adding an async signal to one block fixes one error but breaks another, try adding it to ALL blocks that interact with that signal. Example: if 'load' needs to affect both a clock divider and a counter, add 'posedge load' to BOTH blocks' sensitivity lists, not just one.",
+        "example": {
+          "spec": "Generic timer with asynchronous load: system has clock divider generating pulses and a counter that increments on pulses. Load signal should immediately reset divider and load counter value.",
+          "correct_code": "// SystemVerilog example: async signal in ALL relevant blocks\nmodule async_timer #(\n  parameter int unsigned DIV_FACTOR = 1000\n) (\n  input  logic clk,\n  input  logic reset,\n  input  logic load,           // Asynchronous load signal\n  input  logic [7:0] load_val, // Value to load\n  output logic [7:0] counter\n);\n\n  logic [$clog2(DIV_FACTOR)-1:0] divider;\n  logic pulse;\n\n  // Clock divider - INCLUDES 'posedge load' for async behavior\n  always_ff @(posedge clk or posedge reset or posedge load) begin\n    if (reset) begin\n      divider <= '0;\n      pulse <= 1'b0;\n    end else if (load) begin\n      divider <= '0;  // Reset divider when loading\n      pulse <= 1'b0;\n    end else begin\n      if (divider == DIV_FACTOR-1) begin\n        divider <= '0;\n        pulse <= 1'b1;\n      end else begin\n        divider <= divider + 1;\n        pulse <= 1'b0;\n      end\n    end\n  end\n\n  // Counter - ALSO includes 'posedge load' for async behavior\n  always_ff @(posedge pulse or posedge reset or posedge load) begin\n    if (reset) begin\n      counter <= '0;\n    end else if (load) begin\n      counter <= load_val;  // Load new value immediately\n    end else begin\n      counter <= counter + 1;\n    end\n  end\n\nendmodule\n\n// DEBUGGING INSIGHT: If adding 'posedge load' to just the counter block\n// fixes load but breaks timing, it means the divider also needs 'posedge load'.\n// The solution is adding it to BOTH blocks, not choosing between them."
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "version": "3.1",
+    "last_updated": "2025-10-17",
+    "total_rules": 2,
+    "description": "General architectural guidance rules for RTL design and debugging strategies"
+  }
+}
