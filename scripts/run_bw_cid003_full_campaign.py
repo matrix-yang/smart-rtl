@@ -28,6 +28,7 @@ ROLE_FILES = {
     "debater": "debater.md",
     "verifier": "verifier.md",
     "knowledge": "knowledge-ledger.md",
+    "judge": "judge.md",
 }
 TERMINAL_CONTAINER_STATES = {"exited", "dead"}
 CREDENTIAL_ERROR_TERMS = (
@@ -232,6 +233,7 @@ def launch_task(
     physical_workers: int,
     max_rounds: int,
     evaluator_seed: int,
+    role_max_tokens: dict[str, int],
 ) -> subprocess.CompletedProcess[str]:
     command_inside = (
         "exec /opt/ace-rtl-venv/bin/python3 "
@@ -243,6 +245,12 @@ def launch_task(
         f"--cid cid003 --id {task['id']} "
         f"--physical-workers {physical_workers} "
         f"--max-rounds {max_rounds} --evaluator-seed {evaluator_seed}"
+        f" --planner-max-tokens {role_max_tokens['planner']}"
+        f" --builder-max-tokens {role_max_tokens['builder']}"
+        f" --analyst-max-tokens {role_max_tokens['analyst']}"
+        f" --director-max-tokens {role_max_tokens['director']}"
+        f" --debater-max-tokens {role_max_tokens['debater']}"
+        f" --judge-max-tokens {role_max_tokens['judge']}"
     )
     return run_command(
         [
@@ -273,7 +281,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--physical-workers", type=int, default=2)
     parser.add_argument("--max-rounds", type=int, default=12)
     parser.add_argument("--evaluator-seed", type=int, default=1)
+    parser.add_argument("--planner-max-tokens", type=int, default=8192)
+    parser.add_argument("--builder-max-tokens", type=int, default=32000)
+    parser.add_argument("--analyst-max-tokens", type=int, default=6144)
+    parser.add_argument("--director-max-tokens", type=int, default=8192)
+    parser.add_argument("--debater-max-tokens", type=int, default=6144)
+    parser.add_argument("--judge-max-tokens", type=int, default=4096)
     parser.add_argument("--poll-seconds", type=int, default=15)
+    parser.add_argument("--container-prefix", default="bw-rtl-cid003-full")
     parser.add_argument("--expected-skill-version", required=True)
     parser.add_argument("--reuse", action="append", default=[])
     return parser.parse_args()
@@ -293,6 +308,14 @@ def main() -> int:
     )
     compose_file = repo / "compose.ace-rtl.yaml"
     reuse = parse_reuse(args.reuse)
+    role_max_tokens = {
+        role: getattr(args, f"{role}_max_tokens")
+        for role in ("planner", "builder", "analyst", "director", "debater", "judge")
+    }
+    if any(value < 1 for value in role_max_tokens.values()):
+        raise ValueError("role max-token limits must be positive")
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", args.container_prefix):
+        raise ValueError("container prefix contains unsafe characters")
 
     if not os.environ.get("DEEPSEEK_API_KEY"):
         raise RuntimeError("DEEPSEEK_API_KEY is not exported")
@@ -324,6 +347,8 @@ def main() -> int:
             "physical_workers_per_task": args.physical_workers,
             "max_rounds": args.max_rounds,
             "evaluator_seed": args.evaluator_seed,
+            "role_max_tokens": role_max_tokens,
+            "container_prefix": args.container_prefix,
             "algorithmic_selection_k": None,
             "task_order": [task["id"] for task in tasks],
             "tasks": {},
@@ -333,7 +358,7 @@ def main() -> int:
             item: dict[str, Any] = {
                 **task,
                 "index": index,
-                "container": f"bw-rtl-cid003-full-{index:02d}",
+                "container": f"{args.container_prefix}-{index:02d}",
                 "campaign_status": "pending",
                 "launch_attempts": 0,
             }
@@ -417,6 +442,7 @@ def main() -> int:
                     args.physical_workers,
                     args.max_rounds,
                     args.evaluator_seed,
+                    role_max_tokens,
                 )
                 if launched.returncode != 0:
                     task["last_launch_error"] = launched.stdout[-4000:]

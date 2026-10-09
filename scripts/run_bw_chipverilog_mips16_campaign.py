@@ -276,6 +276,7 @@ def launch_task(
     task: dict[str, Any],
     physical_workers: int,
     max_rounds: int,
+    role_max_tokens: dict[str, int],
 ) -> subprocess.CompletedProcess[str]:
     relative_run_dir = Path(task["run_dir"]).resolve().relative_to(repo).as_posix()
     command_inside = " ".join(
@@ -294,12 +295,12 @@ def launch_task(
             f"--director-model {MODEL}",
             f"--debater-model {MODEL}",
             f"--judge-model {MODEL}",
-            "--planner-max-tokens 8192",
-            "--builder-max-tokens 32000",
-            "--analyst-max-tokens 6144",
-            "--director-max-tokens 8192",
-            "--debater-max-tokens 6144",
-            "--judge-max-tokens 4096",
+            f"--planner-max-tokens {role_max_tokens['planner']}",
+            f"--builder-max-tokens {role_max_tokens['builder']}",
+            f"--analyst-max-tokens {role_max_tokens['analyst']}",
+            f"--director-max-tokens {role_max_tokens['director']}",
+            f"--debater-max-tokens {role_max_tokens['debater']}",
+            f"--judge-max-tokens {role_max_tokens['judge']}",
             "--planner-reasoning-effort low",
             "--builder-reasoning-effort low",
             "--analyst-reasoning-effort low",
@@ -339,6 +340,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--physical-workers", type=int, default=1)
     parser.add_argument("--max-rounds", type=int, default=6)
     parser.add_argument("--poll-seconds", type=int, default=15)
+    parser.add_argument("--planner-max-tokens", type=int, default=8192)
+    parser.add_argument("--builder-max-tokens", type=int, default=32000)
+    parser.add_argument("--analyst-max-tokens", type=int, default=6144)
+    parser.add_argument("--director-max-tokens", type=int, default=8192)
+    parser.add_argument("--debater-max-tokens", type=int, default=6144)
+    parser.add_argument("--judge-max-tokens", type=int, default=4096)
     parser.add_argument("--expected-code-fingerprint", required=True)
     parser.add_argument("--expected-evaluator-sha256", required=True)
     parser.add_argument(
@@ -380,6 +387,12 @@ def main() -> int:
         )
     ).resolve() / "tools" / "formal_equivalence.py"
     reuse = parse_reuse(args.reuse, task_ids)
+    role_max_tokens = {
+        role: getattr(args, f"{role}_max_tokens")
+        for role in ("planner", "builder", "analyst", "director", "debater", "judge")
+    }
+    if any(value < 1 for value in role_max_tokens.values()):
+        raise ValueError("role max-token limits must be positive")
 
     if not os.environ.get("DEEPSEEK_API_KEY"):
         raise RuntimeError("DEEPSEEK_API_KEY is not exported")
@@ -429,6 +442,7 @@ def main() -> int:
             "max_rounds": args.max_rounds,
             "evaluator_depth": 16,
             "evaluator_timeout": 120,
+            "role_max_tokens": role_max_tokens,
             "evaluator_seed": None,
             "algorithmic_selection_k": None,
             "paused_reason": None,
@@ -535,6 +549,7 @@ def main() -> int:
                     next_task,
                     args.physical_workers,
                     args.max_rounds,
+                    role_max_tokens,
                 )
                 if launched.returncode != 0:
                     next_task["last_launch_error"] = launched.stdout[-4000:]

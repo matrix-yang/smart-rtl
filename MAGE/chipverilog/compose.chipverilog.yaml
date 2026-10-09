@@ -1,0 +1,21 @@
+services:
+  mage-chipverilog:
+    build:
+      context: .
+      dockerfile: docker/chipverilog.Dockerfile
+    image: mage-chipverilog:chipmate-v9b
+    working_dir: /opt/mage-chipverilog
+    environment:
+      DEEPSEEK_API_BASE_URL: ${MAGE_API_BASE_URL:-http://192.168.16.17:30000/v1}
+      DEEPSEEK_API_KEY: ${MAGE_API_KEY:-EMPTY}
+      MAGE_MODEL: ${MAGE_MODEL:-ChipMATE-V-9B}
+      MAGE_CONTEXT_WINDOW: ${MAGE_CONTEXT_WINDOW:-32768}
+      MAGE_API_TIMEOUT: ${MAGE_API_TIMEOUT:-1800}
+      MAGE_API_RETRIES: ${MAGE_API_RETRIES:-3}
+      PYTHONPATH: /opt/mage-chipverilog/src
+    volumes:
+      - .:/opt/mage-chipverilog
+      - ${CHIPVERILOG_ROOT:-/nfs/FM/yangyifan/rtl_bench/ChipVerilog}:/chipverilog
+      - ./experiments:/experiments
+    stdin_open: true
+    tty: true

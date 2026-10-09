@@ -15,6 +15,9 @@ services:
       ACE_RTL_LLM_SCRIPT: /workspace/ace/skills/ace-rtl/scripts/deepseek_adapter.py
       ACE_RTL_MAX_TOKENS: "192000"
       ACE_RTL_REASONING_BUDGET: "192000"
+      ACE_RTL_ENABLE_REASONING: ${ACE_RTL_ENABLE_REASONING:-true}
+      ACE_RTL_MODEL_CONTEXT_TOKENS: ${ACE_RTL_MODEL_CONTEXT_TOKENS:-}
+      ACE_RTL_CONTEXT_SAFETY_TOKENS: ${ACE_RTL_CONTEXT_SAFETY_TOKENS:-256}
       # Pin libpython for cocotb; if image python changes, run `python3 -c "import sysconfig; print(sysconfig.get_config_var('LDLIBRARY'))"` to confirm.
       LIBPYTHON_LOC: /usr/lib/x86_64-linux-gnu/libpython3.12.so
       PYTHONPATH: /workspace/ace:/workspace/ace/skills/ace-rtl/scripts

@@ -129,13 +129,16 @@ def get_model_context_tokens(model_name: str) -> int:
 
 def get_model_max_output_tokens(model_name: str) -> int:
     low = (model_name or "").lower()
-    if is_nvidia_inference_model(model_name):
-        configured = env_positive_int_any(
-            ["NEMOTRON_MAX_TOKENS", "ACE_RTL_MAX_TOKENS"],
-            0,
-        )
-        if configured:
-            return configured
+    # An explicit run-level cap applies to adapter-backed proprietary models as
+    # well as NVIDIA-hosted models.  Without this, non-NVIDIA model names fall
+    # through to 32K even when ACE_RTL_MAX_TOKENS is frozen, which can consume
+    # the entire context window before the adapter sees the request.
+    configured = env_positive_int_any(
+        ["NEMOTRON_MAX_TOKENS", "ACE_RTL_MAX_TOKENS"],
+        0,
+    )
+    if configured:
+        return configured
     for key, tokens in MODEL_MAX_OUTPUT_TOKENS.items():
         if key in low:
             return tokens
